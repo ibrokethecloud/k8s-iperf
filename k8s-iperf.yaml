@@ -15,31 +15,31 @@ spec:
         app: iperf-server
         node: {NODE}
     spec:
+      hostNetwork: true
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 1
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - {NODE}
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - {NODE}
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
           effect: NoSchedule
       containers:
-      - name: iperf3-server
-        image: mlabbe/iperf
-        args: ['-s']
-        ports:
-        - containerPort: 5001
-          name: server
+        - name: iperf3-server
+          image: mlabbe/iperf
+          args: ["-s"]
+          ports:
+            - containerPort: 5001
+              name: server
       terminationGracePeriodSeconds: 0
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -48,12 +48,11 @@ spec:
   selector:
     app: iperf-server
   ports:
-  - protocol: TCP
-    port: 5001
-    targetPort: server
-    
+    - protocol: TCP
+      port: 5001
+      targetPort: server
+
 ---
-    
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -69,21 +68,22 @@ spec:
       labels:
         app: iperf-client
     spec:
+      hostNetwork: true
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: NotIn
-                values:
-                - {NODE}
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - {NODE}
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
           effect: NoSchedule
       containers:
-      - name: iperf-client
-        image: mlabbe/iperf
-        command: ['/bin/sh', '-c', 'sleep 1d']
+        - name: iperf-client
+          image: mlabbe/iperf
+          command: ["/bin/sh", "-c", "sleep 1d"]
       terminationGracePeriodSeconds: 0
