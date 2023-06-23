@@ -44,14 +44,9 @@ done
 SERVER_NODE_ADDRESS=$(kubectl get nodes ${SERVER_NODE} -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
 for POD in ${CLIENTS}; do
     echo "[Run] iperf-client pod ${POD}"
-    kubectl exec ${POD} -- iperf -c ${SERVER_NODE_ADDRESS} $@ &> /dev/null &
+    kubectl exec ${POD} -- iperf -c ${SERVER_NODE_ADDRESS} $@ &> /dev/null
 done
 
-until [[ $(jobs | grep -v Running) != "" ]]; do
-    printf "."
-    sleep 2
-done
-printf " done\n"
 
 echo
 kubectl logs -l app=iperf-server 
